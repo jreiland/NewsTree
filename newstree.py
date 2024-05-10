@@ -31,7 +31,7 @@ driver = webdriver.Chrome(service=service, options=options)
 wait = WebDriverWait(driver, 3.154e+7)
 
 #initialize state list
-stateList = ["WELCOME", "NEWS_LIST", "PRINT_COMPLETE "]
+stateList = ["WELCOME", "NEWS_LIST", "PRINT_COMPLETE"]
 
 #global variable for current state
 currentState = stateList[0]
@@ -63,37 +63,40 @@ def displayMessage(words, font, fontSize, x, y, color, isUnderlined):
     textBounds.center = (x, y)
     surface.blit(text, textBounds)
 
-def reset():
-    currentState = "WELCOME"
-    runStartupSequence()
 
 def runStartupSequence():
+    currentState = "WELCOME"
     surface.fill(LATTE)
-
     displayMessage("Welcome to NewsTree", "UnifrakturMaguntia-Regular.ttf", 150, 750, 150, BLACK, False)
     displayMessage("Tap anywhere to continue...", "BricolageGrotesque_24pt-Regular.ttf", 80, 750, 500, BLACK, False)
-
+    
 def runNewsList():
     surface.fill(LATTE)
+    pygame.display.update()
     try:
         driver.get("http://68k.news")
         #https://stackoverflow.com/questions/66172852/how-to-un-minimize-selenium-window/66172915#66172915
         handle_of_the_window = driver.current_window_handle
         driver.switch_to.window(handle_of_the_window)
         driver.set_window_rect(0, 0)
-        driver.maximize_window()
+        driver.fullscreen_window()
         wait.until(EC.url_changes('http://68k.news/'))
         #https://stackoverflow.com/questions/6460630/close-window-automatically-after-printing-dialog-closes?page=1&tab=scoredesc#tab-top
         driver.execute_script("window.print()")
         driver.execute_script("window.onafterprint = function(){ window.close()}")
-        driver.close()
+        currentState = "PRINT_COMPLETE"
+        driver.minimize_window()
+        runPrintComplete()
     except Exception as ex2:
         print(type(ex2))
         print("error fetching page")
 
 
 def runPrintComplete():
-    pass
+    surface.fill(LATTE)
+    displayMessage("Thank you for using NewsTree!", "UnifrakturMaguntia-Regular.ttf", 110, 750, 150, BLACK, False)
+    displayMessage("Tap anywhere to return to main menu...", "BricolageGrotesque_24pt-Regular.ttf", 75, 750, 500, BLACK, False)
+    pygame.display.update()
 
 #---------------------Main Program Loop---------------------
 
@@ -110,13 +113,11 @@ def main():
                 sys.exit()
             if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1):
                 if (currentState == "WELCOME"):
-                    currentState = "NEWS_LIST"
                     runNewsList()
-                elif (currentState == "NEWS_LIST"):
-                    currentState = "PRINT_COMPLETE"
                 elif (currentState == "PRINT_COMPLETE"):
-                    reset()
+                    runStartupSequence()
                 else:
+                    print(currentState)
                     print("Fatal error. Invalid or unknown state.")
                     pygame.quit()
                     sys.exit(1)
