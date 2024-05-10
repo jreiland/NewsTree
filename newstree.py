@@ -72,6 +72,8 @@ def runStartupSequence():
     
 def runNewsList():
     surface.fill(LATTE)
+    displayMessage("Tap the Google Chrome banner above", "BricolageGrotesque_24pt-Regular.ttf", 80, 750, 150, BLACK, False)
+    displayMessage("or the icon below to continue.", "BricolageGrotesque_24pt-Regular.ttf", 80, 750, 240, BLACK, False)
     pygame.display.update()
     try:
         driver.get("http://68k.news")
